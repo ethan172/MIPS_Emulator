@@ -6,6 +6,13 @@ InstructionMemory::InstructionMemory()
     m_InstructionCount = 0;
 }
 
+InstructionMemory::InstructionMemory(const uint16_t memSize) :
+    Memory(memSize)
+{
+    m_ProgramCounter = 0;
+    m_InstructionCount = 0;
+}
+
 InstructionMemory::~InstructionMemory()
 {
     

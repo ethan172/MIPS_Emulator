@@ -13,10 +13,13 @@ private:
 
 public:
     InstructionMemory();
+    InstructionMemory(const uint16_t memSize);
     ~InstructionMemory();
 
     // adds an instruction to the end of the 
     bool addInstruction(const uint32_t instr);
+
+    bool addInstructions(); // TODO
 
     // Retrieves an instruction at idx and stores in entry
     // Returns true on success, false on failure

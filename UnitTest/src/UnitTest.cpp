@@ -34,12 +34,13 @@ TEST_CASE("InstructionMemory")
 {
     SECTION("Basic Entry Adding")
     {
+        uint16_t memSize = 2048;
         std::vector<uint32_t> v;
-        InstructionMemory<uint32_t> inst;
+        InstructionMemory inst(memSize);
 
         // use the std::vector as the 'gold file'
 
-        for (unsigned int i=0; i<10; i++)
+        for (unsigned int i=0; i<memSize; i++)
         {
             v.push_back(i);
         }
@@ -50,7 +51,7 @@ TEST_CASE("InstructionMemory")
         }
 
         uint32_t instOut;
-        for (unsigned int i=0; i<inst.getEntryCount(); i++)
+        for (unsigned int i=0; i<v.size(); i++)
         {
             CHECK(inst.getInstruction(i, instOut));
 
@@ -60,17 +61,31 @@ TEST_CASE("InstructionMemory")
 
     SECTION("Multiple Entry Adding")
     {
-        uint16_t size = 100;
+        uint16_t size = 1000;
         uint32_t entries[size];
-        InstructionMemory<uint32_t> i;
+        InstructionMemory inst(size);
 
         for (unsigned int i = 0; i<size; i++)
         {
             entries[i] = 0xA000 + i;
         }
 
-        
+        for (unsigned int i = 0; i<size; i++)
+        {
+            CHECK(inst.addInstruction(entries[i]));
+        }
 
+        // not enough memory to add another instruction
+        CHECK(inst.addInstruction(0xBAD) == false);
+
+        uint32_t registerVal;
+        for (unsigned int i = 0; i<size; i++)
+        {
+            // Check getting value returns success and value matches expected
+            CHECK(inst.getInstruction(i, registerVal));
+            CHECK(registerVal == entries[i]);
+        }
+
+        CHECK(inst.getInstruction(size+100, registerVal) == false);
     }
-    
 }
