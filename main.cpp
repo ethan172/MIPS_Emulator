@@ -11,14 +11,11 @@ https://learn.microsoft.com/en-us/cpp/build/reference/output-file-f-options?view
 
 
 #include <iostream>
-#include "Mux.hpp"
 
 
 int main(int arc, char *argv[])
 {
-    std::cout << "starting" << std::endl;
-
-    Mux m;
+    std::cout << "Starting MIPS Emulator" << std::endl;
 
     return 0;
 }
