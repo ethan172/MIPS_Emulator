@@ -2,6 +2,7 @@
 #define MEMORY_HPP
 
 #include <cstdint>
+#include <iostream>
 
 /*
 Base class for a X-bit memory buffer
@@ -19,21 +20,24 @@ private:
 protected:
     // Constructors and copy constructors
     Memory() :
-        MEM_SIZE(512)
+        MEM_SIZE(4096)
     {
-        m_MemoryBuffer = new T[MEM_SIZE];
+        m_MemoryBuffer = nullptr;
+        initializeMemory();
     }
 
     Memory(const uint16_t memSize) :
         MEM_SIZE(memSize)
     {
-        m_MemoryBuffer = new T[MEM_SIZE];
+        m_MemoryBuffer = nullptr;
+        initializeMemory();
     }
 
     Memory(const uint16_t memSize, const T *buffer) : 
         MEM_SIZE(memSize)
     {
-        m_MemoryBuffer = new T[MEM_SIZE];
+        m_MemoryBuffer = nullptr;
+        initializeMemory();
 
         for (unsigned int i = 0; i < memSize; i++)
         {
@@ -46,6 +50,17 @@ protected:
         delete[] m_MemoryBuffer;
         m_MemoryBuffer = nullptr;
 
+    }
+
+    void initializeMemory()
+    {
+        if (m_MemoryBuffer != nullptr)
+        {
+            std::cout<<"mem buffer is not null!"<<std::endl;
+            delete[] m_MemoryBuffer;
+        }
+
+        m_MemoryBuffer = new T[MEM_SIZE];
     }
 
     // Returns an entry in @param value
@@ -111,6 +126,14 @@ protected:
 
         return true;
     }
+
+    void clearMemory()
+    {
+        // delete then reinitialize so m_MemoryBuffer isn't null
+        delete[] m_MemoryBuffer;
+        initializeMemory();
+    }
+
 };
 
 #endif // MEMORY_HPP

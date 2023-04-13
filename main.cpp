@@ -11,11 +11,33 @@ https://learn.microsoft.com/en-us/cpp/build/reference/output-file-f-options?view
 
 
 #include <iostream>
+#include "InstructionMemory.hpp"
+
+/*
+General TODOs
+- Implement Register Memory
+- Implement Data Memory
+- Define I/R/J type instructions
+    - Define funct codes within these types
+- Finish ALU implementation
+
+*/
 
 
 int main(int arc, char *argv[])
 {
     std::cout << "Starting MIPS Emulator" << std::endl;
+
+    // Initialize instruction memory to hold 4096 instructions
+    InstructionMemory instrMem(4096); 
+
+
+    /*
+    Still need following objects:
+        Register memory
+        Data Memory
+    */
+
 
     return 0;
 }
