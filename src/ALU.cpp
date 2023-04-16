@@ -3,9 +3,7 @@
 
 ALU::ALU()
 {
-    m_AluOp = 0x0;
-    m_LhsOperand = 0x0;
-    m_RhsOperand = 0x0;
+    m_OpCode = 0x0;
 }
 
 ALU::~ALU()
@@ -13,77 +11,137 @@ ALU::~ALU()
 
 }
 
-void ALU::setLhsOperand(uint32_t lhs)
+void ALU::setOpCode(uint16_t aluOp)
 {
-    m_LhsOperand = lhs;
-}
-
-void ALU::setRhsOperand(uint32_t rhs)
-{
-    m_RhsOperand = rhs;
+    m_OpCode = aluOp;
 }
 
 uint16_t ALU::getAluOp() const
 {
-    return m_AluOp;
+    return m_OpCode;
 }
 
-bool ALU::evaluate(bool& zeroOut, uint32_t& result) const
+uint32_t ALU::evaluate(const uint32_t lhs, const uint32_t rhs, bool& zeroFlag, bool& overflow, bool& carryOut)
 {
+    uint32_t result;
+
     // Perform opeartion based on alu opcode member
-    switch (m_AluOp)
+    switch (m_OpCode)
     {
-        case ALUOpCodes::aluAdd:
-            result = aluAdd();
+        case ALUOpCodes::Add:
+            result = add(lhs, rhs);
             break;
 
-        case ALUOpCodes::aluSub:
-            result = aluSub();
+        case ALUOpCodes::Sub:
+            result = sub(lhs, rhs);
             break;
         
-        case ALUOpCodes::aluOr:
-            result = aluOr();
+        case ALUOpCodes::Or:
+            result = logicalOr(lhs, rhs);
             break;
         
-        case ALUOpCodes::aluAnd:
-            result = aluAnd();
+        case ALUOpCodes::And:
+            result = logicalAnd(lhs, rhs);
             break;
         
-        case ALUOpCodes::aluSlt:
-            result = aluSlt();
+        case ALUOpCodes::Slt:
+            result = slt(lhs, rhs);
             break;
         
         default:
+            // TODO throw an exception here?
             result = 0x0;
-            return false; // couldn't find the opcode so return fail
     }
 
-    return true; // return success
+    zeroFlag = m_ZeroFlag;
+    overflow = m_Overflow;
+    carryOut = m_CarryOut;
+
+    return result;
 }
 
 
-uint32_t ALU::aluAdd() const
+int32_t ALU::add(const int32_t lhs, const int32_t rhs)
 {
-    return (m_LhsOperand + m_RhsOperand);
+    int32_t result = lhs + rhs;
+
+    // if both operands have the same sign and the result has a different sign
+    // then overflow has occurred
+    if (result > 0)
+    {
+        if (lhs < 0 && rhs < 0)
+        {
+            m_Overflow = true;
+            m_CarryOut = true;
+        }
+        else
+        {
+            m_Overflow = false;
+            m_CarryOut = false;
+        }
+    }
+    else if (result < 0)
+    {
+        if (lhs > 0 && rhs > 0)
+        {
+            m_Overflow = true;
+            m_CarryOut = true;
+        }
+        else
+        {
+            m_Overflow = false;
+            m_CarryOut = false;
+        }
+    }
+    else // result == 0
+    {
+        m_Overflow = false;
+        m_CarryOut = false;
+    }
+
+    m_ZeroFlag = (result == 0);
+
+    return result;
 }
 
-uint32_t ALU::aluSub() const
+int32_t ALU::sub(const int32_t lhs, const int32_t rhs)
 {
-    return (m_LhsOperand - m_RhsOperand);
+    // Subtraction is just fancy addition
+    int32_t result = add(lhs, -rhs);
+
+    return result;
 }
 
-uint32_t ALU::aluOr() const
+uint32_t ALU::logicalOr(const uint32_t lhs, const uint32_t rhs)
 {
-    return (m_LhsOperand | m_RhsOperand);
+    uint32_t result = lhs | rhs;
+    m_ZeroFlag = (result == 0);
+    m_Overflow = false;
+    m_CarryOut = false;
+
+    return result;
 }
 
-uint32_t ALU::aluAnd() const
+uint32_t ALU::logicalAnd(const uint32_t lhs, const uint32_t rhs)
 {
-    return (m_LhsOperand & m_RhsOperand);
+    uint32_t result = lhs & rhs;
+    m_ZeroFlag = (result == 0);
+    m_Overflow = false;
+    m_CarryOut = false;
+
+    return result;
 }
 
-uint32_t ALU::aluSlt() const
+uint32_t ALU::slt(const int32_t lhs, const int32_t rhs)
 {
-    // TODO
-    return 0x0;
+    // slt = set less than
+    // Return 1 if lhs < rhs, else return 0
+
+    uint32_t result = (lhs < rhs);
+
+    m_ZeroFlag = (result == 0);
+    m_Overflow = false;
+    m_CarryOut = false;
+
+    return result;
 }

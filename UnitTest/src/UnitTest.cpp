@@ -18,16 +18,222 @@ https://learn.microsoft.com/en-us/cpp/build/reference/output-file-f-options?view
 #include "catch.hpp"
 #include "MipsUtils.hpp"
 #include "InstructionMemory.hpp"
+#include "ALU.hpp"
 
 
 TEST_CASE("Utils")
 {
     uint16_t val = 0x5;
 
-    CHECK(signExtend(val) == 0x00000005);
+    CHECK(MIPSUtils::signExtend(val) == 0x00000005);
 
     val = 0x8005;
-    CHECK(signExtend(val) == 0xFFFF8005);
+    CHECK(MIPSUtils::signExtend(val) == 0xFFFF8005);
+}
+
+TEST_CASE("ALU")
+{
+    SECTION("Add")
+    {
+        ALU alu;
+
+        int32_t lhs, rhs, result;
+        bool zero, overflow, carry;
+
+        lhs = 100;
+        rhs = 5;
+
+        alu.setOpCode(0);
+        result = alu.evaluate(lhs, rhs, zero, overflow, carry);
+
+        CHECK(result == 105);
+        CHECK(zero == false);
+        CHECK(overflow == false);
+        CHECK(carry == false);
+
+        lhs = -100;
+        rhs = -5;
+        result = alu.evaluate(lhs, rhs, zero, overflow, carry);
+
+        CHECK(result == -105);
+        CHECK(zero == false);
+        CHECK(overflow == false);
+        CHECK(carry == false);
+
+        lhs = 2147483647; // max value of int32
+        rhs = 1;
+        result = alu.evaluate(lhs, rhs, zero, overflow, carry);
+
+        CHECK(result == -2147483648);
+        CHECK(zero == false);
+        CHECK(overflow == true);
+        CHECK(carry == true);
+
+        lhs = -1;
+        rhs = -2147483648; // min value of int32
+        result = alu.evaluate(lhs, rhs, zero, overflow, carry);
+
+        CHECK(result == 2147483647);
+        CHECK(zero == false);
+        CHECK(overflow == true);
+        CHECK(carry == true);
+
+        lhs = 0;
+        rhs = 0;
+        result = alu.evaluate(lhs, rhs, zero, overflow, carry);
+
+        CHECK(result == 0);
+        CHECK(zero == true);
+        CHECK(overflow == false);
+        CHECK(carry == false);
+    }
+
+    SECTION("Sub")
+    {
+        ALU alu;
+        uint32_t lhs, rhs, result;
+        bool zero, overflow, carry;
+
+        alu.setOpCode(1);
+
+        lhs = 500;
+        rhs = 100;
+        result = alu.evaluate(lhs, rhs, zero, overflow, carry);
+
+        CHECK(result == 400);
+        CHECK(zero == false);
+        CHECK(overflow == false);
+        CHECK(carry == false);
+
+        lhs = 2147483647; // max value of int32
+        rhs = lhs;
+        result = alu.evaluate(lhs, rhs, zero, overflow, carry);
+
+        CHECK(result == 0);
+        CHECK(zero == true);
+        CHECK(overflow == false);
+        CHECK(carry == false);
+
+        lhs = -2147483648; // min value
+        rhs = 1;
+        result = alu.evaluate(lhs, rhs, zero, overflow, carry);
+
+        /*
+        1111 1111 1111 1111 1111 1111 1111 1111
+
+        0000 0000 0000 0000 0000 0000 0000 0001
+        
+        1000 0000 0000 0000 0000 0000 0000 0000 
+        1111 1111 1111 1111 1111 1111 1111 1111 // -1 
+        0111 1111 1111 1111 1111 1111 1111 1111 + overflow & carry
+        
+        */
+        CHECK(result == 0x7FFFFFFF);
+        CHECK(zero == false);
+        CHECK(overflow == true);
+        CHECK(carry == true);
+
+    }
+
+    SECTION("And")
+    {
+        ALU alu;
+
+        uint32_t lhs, rhs, result;
+        bool zero, overflow, carry;
+
+        alu.setOpCode(3);
+
+        lhs = 0x0000000F;
+        rhs = 0xFFFFFFFF;
+        result = alu.evaluate(lhs, rhs, zero, overflow, carry);
+
+        CHECK(result == 0xF);
+        CHECK(zero == false);
+        CHECK(overflow == false);
+        CHECK(carry == false);
+
+        lhs = 0xBADF00D;
+        rhs = 0x0;
+        result = alu.evaluate(lhs, rhs, zero, overflow, carry);
+
+        CHECK(result == 0x0);
+        CHECK(zero == true);
+        CHECK(overflow == false);
+        CHECK(carry == false);
+
+        lhs = 0xF0000001;
+        rhs = 0x00000001;
+        result = alu.evaluate(lhs, rhs, zero, overflow, carry);
+
+        CHECK(result == 0x1);
+        CHECK(zero == false);
+        CHECK(overflow == false);
+        CHECK(carry == false);
+    }
+
+    SECTION("Or")
+    {
+        ALU alu;
+        uint32_t lhs, rhs, result;
+        bool zero, overflow, carry;
+
+        alu.setOpCode(2);
+
+        lhs = 0x0;
+        rhs = 0xFFFFFFFF;
+        result = alu.evaluate(lhs, rhs, zero, overflow, carry);
+
+        CHECK(result == 0xFFFFFFFF);
+        CHECK(zero == false);
+        CHECK(overflow == false);
+        CHECK(carry == false);
+
+        lhs = 0xBAD0000;
+        rhs = 0x000F00D;
+        result = alu.evaluate(lhs, rhs, zero, overflow, carry);
+
+        CHECK(result == 0xBADF00D);
+        CHECK(zero == false);
+        CHECK(overflow == false);
+        CHECK(carry == false);
+
+        lhs = 0;
+        rhs = 0;
+        result = alu.evaluate(lhs, rhs, zero, overflow, carry);
+
+        CHECK(result == 0);
+        CHECK(zero == true);
+        CHECK(overflow == false);
+        CHECK(carry == false);
+    }
+
+    SECTION("Slt")
+    {
+        ALU alu;
+        int32_t lhs, rhs, result;
+        bool zero, overflow, carry;
+
+        alu.setOpCode(4);
+
+        lhs = -2147483648;
+        rhs = 5;
+        result = alu.evaluate(lhs, rhs, zero, overflow, carry);
+
+        CHECK(result == 1);
+        CHECK(zero == false);
+        CHECK(overflow == false);
+        CHECK(carry == false);
+
+        lhs = 2147483647;
+        rhs = 0;
+        result = alu.evaluate(lhs, rhs, zero, overflow, carry);
+
+        CHECK(result == 0);
+        CHECK(zero == true);
+        CHECK(overflow == false);
+        CHECK(carry == false);
+    }
 }
 
 TEST_CASE("InstructionMemory")
@@ -53,7 +259,7 @@ TEST_CASE("InstructionMemory")
         uint32_t instOut;
         for (unsigned int i=0; i<v.size(); i++)
         {
-            CHECK(inst.getInstruction(i, instOut));
+            CHECK(inst.fetchInstruction(i, instOut));
 
             CHECK(instOut == v[i]);
         }
@@ -82,10 +288,10 @@ TEST_CASE("InstructionMemory")
         for (unsigned int i = 0; i<size; i++)
         {
             // Check getting value returns success and value matches expected
-            CHECK(inst.getInstruction(i, registerVal));
+            CHECK(inst.fetchInstruction(i, registerVal));
             CHECK(registerVal == entries[i]);
         }
 
-        CHECK(inst.getInstruction(size+100, registerVal) == false);
+        CHECK(inst.fetchInstruction(size+100, registerVal) == false);
     }
 }

@@ -1,11 +1,14 @@
 #include "InstructionMemory.hpp"
 
-InstructionMemory::InstructionMemory()
+InstructionMemory::InstructionMemory() :
+    m_MemorySize(512),
+    Memory(m_MemorySize)
 {
     m_InstructionCount = 0;
 }
 
 InstructionMemory::InstructionMemory(const uint16_t memSize) :
+    m_MemorySize(memSize),
     Memory(memSize)
 {
     m_InstructionCount = 0;
@@ -18,7 +21,7 @@ InstructionMemory::~InstructionMemory()
 
 bool InstructionMemory::addInstruction(const uint32_t instr)
 {
-    bool retVal = writeRegister(instr, m_InstructionCount);
+    bool retVal = writeRegister(m_InstructionCount, instr);
     
     if (retVal)
     {
@@ -31,13 +34,18 @@ bool InstructionMemory::addInstruction(const uint32_t instr)
     }
 }
 
-bool InstructionMemory::parseInstruction(uint16_t startBit, uint16_t stopBit, uint16_t& result)
+bool InstructionMemory::fetchInstruction(const uint16_t idx, uint32_t& entry) const
 {
-    // TODO
-    return true;
+    if (idx >= m_InstructionCount)
+    {
+        return false;
+    }
+
+    return getRegister(idx, entry);
 }
 
-bool InstructionMemory::getInstruction(const uint16_t idx, uint32_t& entry) const
+
+uint16_t InstructionMemory::getInstructionCount() const
 {
-    return getRegister(idx, entry);
+    return m_InstructionCount;
 }

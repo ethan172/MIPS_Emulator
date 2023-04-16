@@ -3,12 +3,12 @@
 
 #include <cstdint>
 #include <iostream>
+#include <exception>
 
 /*
 Base class for a X-bit memory buffer
 Utilizes the heap for the memory buffer
 Is meant to be extended for specific types of memory and management
-
 */
 template <typename T>
 class Memory
@@ -20,7 +20,7 @@ private:
 protected:
     // Constructors and copy constructors
     Memory() :
-        MEM_SIZE(4096)
+        MEM_SIZE(0)
     {
         m_MemoryBuffer = nullptr;
         initializeMemory();
@@ -52,6 +52,13 @@ protected:
 
     }
 
+    /*
+    \brief Instantiates the private memory buffer.
+            If MEM_SIZE is 0 std::length_error exception
+            will be thrown.
+
+    \return None
+    */
     void initializeMemory()
     {
         if (m_MemoryBuffer != nullptr)
@@ -60,11 +67,23 @@ protected:
             delete[] m_MemoryBuffer;
         }
 
+        if (MEM_SIZE == 0)
+        {
+            throw std::length_error("Cannot allocate memory buffer of size 0");
+        }
+
         m_MemoryBuffer = new T[MEM_SIZE];
     }
 
-    // Returns an entry in @param value
-    // returns true on success, false on failure
+    
+    /*
+    \brief Returns an entry in @param value
+
+    @param [in] addr Address to retrieve
+    @param [out] value Value of the address being read
+
+    \return True on success, false on failure
+    */
     bool getRegister(uint16_t addr, T &value) const
     {
         // Check idx is in bounds of used memory
@@ -79,12 +98,13 @@ protected:
 
     /*
     \brief adds an entry to the memory buffer
-    @param [in] val value to add to the memory buffer
+
     @param [in] addr index where val is to be added
+    @param [in] val value to add to the memory buffer
 
     @return True on success, false on failure
     */
-    bool writeRegister(const T val, uint16_t addr)
+    bool writeRegister(const uint16_t addr, const T val)
     {
         // Check valid address
         if (addr < MEM_SIZE)
@@ -100,6 +120,7 @@ protected:
     \brief Adds a collections of entries to the memory buffer
         If there is not enough space left in the buffer for all entries
         to be added then none will be added
+
     @param [in] entries pointer to list of entries to be added
     @param [in] numElements The number of things to be added
     @param [out] idx The index of the buffer in which the first element was added
