@@ -1,6 +1,6 @@
 /*
-To compile and run
-cl /EHsc /I .\test\include\ /I .\include .\test\src\test.cpp .\src\*.cpp
+To compile and run on Windows
+cl /EHsc /I .\UnitTest\include\ /I .\include .\UnitTest\src\UnitTest.cpp .\src\*.cpp
 
 .\test.exe
 
@@ -19,6 +19,7 @@ https://learn.microsoft.com/en-us/cpp/build/reference/output-file-f-options?view
 #include "MipsUtils.hpp"
 #include "InstructionMemory.hpp"
 #include "ALU.hpp"
+#include "InstructionTypes.hpp"
 
 
 TEST_CASE("Utils")
@@ -292,6 +293,38 @@ TEST_CASE("InstructionMemory")
             CHECK(registerVal == entries[i]);
         }
 
-        CHECK(inst.fetchInstruction(size+100, registerVal) == false);
+        CHECK(inst.fetchInstruction(size+100, registerVal) == false); // check too large of idx
+        CHECK(inst.fetchInstruction(-2, registerVal) == false); // check too small of idx
     }
+
+    SECTION("R-Type Instructions")
+    {
+        InstructionMemory instructionMem(2048);
+
+        uint32_t OpCode = 0x0;
+        uint32_t rs = 0x0;
+        uint32_t rt = 0x0;
+        uint32_t rd = 0x0;
+        uint32_t shamt = 0x0;
+        uint32_t funct = 0x0;
+        uint32_t data;
+
+        uint32_t instructionWord = OpCode | rs | rt | rd | shamt | funct;
+
+        instructionMem.addInstruction(instructionWord);
+
+        CHECK(instructionMem.fetchInstruction(0, data) == true);
+        CHECK((data & RTypeInstruction::OpCodeMask) == OpCode);
+        CHECK((data & RTypeInstruction::RsMask) == rs);
+        CHECK((data & RTypeInstruction::RtMask) == rt);
+        CHECK((data & RTypeInstruction::RdMask) == rd);
+        CHECK((data & RTypeInstruction::ShamtMask) == shamt);
+        CHECK((data & RTypeInstruction::FunctMask) == funct);
+
+    }
+}
+
+TEST_CASE("Control Unit")
+{
+    // TODO
 }

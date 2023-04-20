@@ -2,15 +2,15 @@
 
 
 RegisterMemory::RegisterMemory() :
-    m_MemorySize(64),
-    Memory(m_MemorySize)
+    Memory(64),
+    m_MemorySize(getMemorySize())
 {
     
 }
 
 RegisterMemory::RegisterMemory(const uint16_t memSize) :
-    m_MemorySize(memSize),
-    Memory(memSize)
+    Memory(memSize),
+    m_MemorySize(memSize)
 {
 
 }
@@ -20,22 +20,23 @@ RegisterMemory::~RegisterMemory()
     
 }
 
-bool RegisterMemory::readRegister(const uint16_t idx, uint32_t &data) const
+bool RegisterMemory::getRegister(const uint16_t idx, uint32_t &data) const
 {
     if (idx >= m_MemorySize)
     {
         return false;
     }
 
-    return getRegister(idx, data);
+    return readRegister(idx, data);
 }
 
-bool RegisterMemory::writeRegister(const uint16_t idx, const uint32_t data)
+bool RegisterMemory::setRegister(const bool regWrite, const uint16_t idx, const uint32_t data)
 {
-    if (idx >= m_MemorySize)
+    // idx is within bounds and regWrite flag is true
+    if (regWrite && idx < m_MemorySize)
     {
-        return false;
+        return writeRegister(idx, data);
     }
 
-    return writeRegister(idx, data);
+    return false;
 }

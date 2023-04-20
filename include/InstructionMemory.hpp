@@ -2,7 +2,6 @@
 #define INSTRUCTION_MEMORY_HPP
 
 #include "Memory.hpp"
-#include <cstdint>
 
 // Inherite from Memory such that Memory is using 32bit registers
 class InstructionMemory : private virtual Memory<uint32_t>

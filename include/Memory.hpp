@@ -18,7 +18,11 @@ private:
     T *m_MemoryBuffer; // Memory buffer itself
 
 protected:
-    // Constructors and copy constructors
+    /*
+    \brief Default Constructor. This should not be called because here MEM_SIZE is
+            initialized to 0 which will then cause initializeMemory() to throw an
+            exception due to invalid space. The parameterized constructor should be called instead
+    */
     Memory() :
         MEM_SIZE(0)
     {
@@ -26,6 +30,11 @@ protected:
         initializeMemory();
     }
 
+    /*
+    \brief Parameterized constructor. Will initialize the memory space if possible
+
+    @param [in] memSize Size of the memory buffer to create
+    */
     Memory(const uint16_t memSize) :
         MEM_SIZE(memSize)
     {
@@ -70,6 +79,7 @@ protected:
         if (MEM_SIZE == 0)
         {
             throw std::length_error("Cannot allocate memory buffer of size 0");
+            return;
         }
 
         m_MemoryBuffer = new T[MEM_SIZE];
@@ -84,10 +94,10 @@ protected:
 
     \return True on success, false on failure
     */
-    bool getRegister(uint16_t addr, T &value) const
+    bool readRegister(uint16_t addr, T &value) const
     {
         // Check idx is in bounds of used memory
-        if (addr < MEM_SIZE)
+        if (addr < MEM_SIZE && addr >= 0)
         {
             value = m_MemoryBuffer[addr];
             return true;
@@ -153,6 +163,11 @@ protected:
         // delete then reinitialize so m_MemoryBuffer isn't null
         delete[] m_MemoryBuffer;
         initializeMemory();
+    }
+
+    uint16_t getMemorySize() const
+    {
+        return MEM_SIZE;
     }
 
 };

@@ -3,16 +3,42 @@
 
 #include <cstdint>
 
-class ControlUnit
+
+namespace ControlUnit
 {
-private:
+    /*
+    \brief Parses out the instruction word and sets appropriate control signals
+    @param [in] instructionWord The 32bit instruction containing the opcode and all other
+                fields within the particular instruction
+    
+    @param [out] regDest If True, 'write register' in register memory will be given the
+                the Rd field from instructionWord. If false it will be given Rt field
+    @param [out] branch True on a branch instruction, false on every other instruction
+    @param [out] memRead If True, will read from data memory. If false, will not read from data memory
+    @param [out] memToReg If True register memory will be written with value from data memory. If false
+                            register memory will be written with result of ALU
+    @param [out] aluOp Three bit opcode for the ALU operation to be executed
+    @param [out] memWrite If true data memory will be read. If false data memory will not be read
+    @param [out] aluSrc If true 2nd ALU operand will be the second register (Rt). If False the ALU operand
+                        will be a sign extended immediate value from the instruction word
+    @param [out] regWrite If true register data will be written. If false, it will not be
 
-public:
-
-    // Parses out the instruction word and sets appropriate control signals
+    \return None
+    */
     void evaluate(const uint32_t instructionWord, bool& regDest, bool& branch, bool& memRead,
                     bool& memToReg, uint8_t& aluOp, bool& memWrite, bool& aluSrc, bool& regWrite);
-};
+    
+    /*
+    \brief Generates appropriate ALU control signals
+
+    @param [in] funct Five bit funct code from the instruction word
+    @param [in] aluOpType Two bit operation type; Load/Store, Branch, Arithmetic (R-Types)
+    @param [out] aluControl Three bit control signal going to the ALU
+
+    \return None
+    */
+    void aluControlUnit(const uint8_t funct, const uint8_t aluOpType, uint8_t& aluControl);
+}
 
 namespace ControlSignals
 {

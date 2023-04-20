@@ -51,7 +51,16 @@ public:
         And,
         Slt
     };
-
 };
+
+/*
+Bit masks for the type of operation going to the ALU based on instruction type
+*/
+namespace ALUOpTypeMasks
+{
+    const uint8_t Branch            = 0x1; // bit 1
+    const uint8_t Arithmetic        = 0x2; // bit 2
+    const uint8_t LoadStoreMask     = 0x3; // bits 1:0
+}
 
 #endif // ALU_HPP
