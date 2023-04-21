@@ -11,6 +11,7 @@ https://learn.microsoft.com/en-us/cpp/build/reference/output-file-f-options?view
 
 
 #include <iostream>
+#include <fstream>
 #include "InstructionMemory.hpp"
 #include "RegisterMemory.hpp"
 #include "ALU.hpp"
@@ -21,26 +22,59 @@ https://learn.microsoft.com/en-us/cpp/build/reference/output-file-f-options?view
 
 /*
 General TODOs
-- Implement Register Memory
-- Implement Data Memory
-- Define I/R/J type instructions
-    - Define funct codes within these types
-- Implement ControlUnit
-    - This may have to wait until after instructions are defined
+- Implement logic to read in file
 
 */
 
 
-int main(int arc, char *argv[])
+int main(int argc, char *argv[])
 {
     std::cout << "Starting MIPS Emulator" << std::endl;
 
-    // read in the instruction file here
+    if (argc != 2)
+    {
+        std::cout << "Usage is MIPSEmulator <instruction file>" << std::endl;
+        return EXIT_FAILURE;
+    }
 
+    std::ifstream inFile(argv[1]);
+    uint32_t lineNumber = 1;
+    uint32_t instructionWord;
+    uint16_t programCounter = 0;
+    bool success = true; // overall flag to detect an error
+
+    // Instruction memory object and supporting variables
     InstructionMemory instructionMem(4096);
+    uint16_t rs, rt, rd, immediate, funct;
+    uint32_t signExtendImm;
+
+    inFile >> instructionWord;
+    while (!inFile.fail())
+    {
+        success &= instructionMem.addInstruction(instructionWord);
+
+        if (!success)
+        {
+            std::cout << "Could not add instruction " << lineNumber << std::endl;
+        }
+        
+        lineNumber++;
+        inFile >> instructionWord;
+    }    
+
+
     RegisterMemory regMem(512);
-    ALU alu;        // full ALU between the register and data memory spaces
+    uint32_t reg1Data, reg2Data;
+
+
+    // full ALU between the register and data memory spaces + supporting variables
+    ALU alu;
+    bool aluZeroFlag, aluOverflowFlag, aluCarryFlag;
+    uint32_t aluResult;
+    
+
     DataMemory dataMem(8192);
+    uint32_t dataReadValue;
 
 
     // ALU in top left of diagram
@@ -56,18 +90,10 @@ int main(int arc, char *argv[])
     branchAlu.setOpCode(ALU::ALUOpCodes::Add); // This ALU will only ever add
     
 
-    uint16_t programCounter = 0;
-    uint32_t instructionWord;
-    bool error = true;
-    uint16_t rs, rt, rd, immediate, funct;
-    uint32_t reg1Data, reg2Data;
-    uint32_t aluResult, signExtendImm;
-
     // Control signal variables
     bool regDest, branch, memRead, memToReg, memWrite, aluSrc, regWrite;
     uint8_t aluOp;
 
-    bool aluZeroFlag, aluOverflowFlag, aluCarryFlag;
 
     while (programCounter < instructionMem.getInstructionCount())
     {
@@ -76,7 +102,7 @@ int main(int arc, char *argv[])
         but since this MIPS Emulator implementation uses arrays we just need to add 1 to the index
         */
         pcAdderResult = pcAdder.evaluate(programCounter, 1, pcAdderZero, pcAdderOverflow, pcAdderCarry);
-        error &= instructionMem.fetchInstruction(programCounter, instructionWord);
+        success &= instructionMem.fetchInstruction(programCounter, instructionWord);
 
 
         // Parse out different pieces of the instruction word
@@ -86,11 +112,14 @@ int main(int arc, char *argv[])
         immediate = (instructionWord & ITypeInstruction::ImmediateMask); // bits 15:0
         funct = (instructionWord & RTypeInstruction::FunctMask); // bits 5:0
 
-        error &= regMem.getRegister(rs, reg1Data);
-        error &= regMem.getRegister(rt, reg2Data);
+        success &= regMem.getRegister(rs, reg1Data);
+        success &= regMem.getRegister(rt, reg2Data);
 
         ControlUnit::evaluate(instructionWord, regDest, branch, memRead, memToReg, aluOp,
                                                 memWrite, aluSrc, regWrite);
+
+        // take in ALU op and then overwrite it
+        ControlUnit::aluControlUnit(funct, aluOp, aluOp);
 
         signExtendImm = MIPSUtils::signExtend(immediate);
 
@@ -104,7 +133,9 @@ int main(int arc, char *argv[])
 
 
         
-        // TODO put the data memory access here
+        success &= dataMem.getRegister(memRead, aluResult, dataReadValue);
+        
+        success &= regMem.setRegister(regWrite, rd, MIPSUtils::mux(aluResult, dataReadValue, memToReg));
 
 
         programCounter = MIPSUtils::mux(pcAdderResult, branchAluResult, (aluZeroFlag && branch));
@@ -112,13 +143,14 @@ int main(int arc, char *argv[])
         if (aluOverflowFlag || aluCarryFlag)
         {
             // handle the overflow somehow?
+            std::cout<<"ALU overflow on instruction " << programCounter << std::endl;
         }
 
 
-
-        if (!error)
+        if (!success)
         {
             // found an error, don't continue
+            std::cout << "Error found on instruction " << programCounter << std::endl;
             break;
         }
     }

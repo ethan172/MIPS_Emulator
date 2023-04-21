@@ -16,7 +16,7 @@ MIPSEmulator:
 	${CC} ${CFLAGS} ${INCLUDES} -o ${TARGET_FILE} ${SOURCE} main.cpp
 
 clean:
-	rm -f ${TARGET_FILE}*
+	rm -f ${TARGET_FILE}* *.o
 
 .PHONY: all test clean
 

@@ -20,7 +20,7 @@ namespace ControlUnit
                 branch = false;
                 memRead = false;
                 memToReg = false;
-                aluOp = instructionWord & RTypeInstruction::FunctMask; // TODO this probs isn't right
+                aluOp = ALU::ALUOpType::Arithmetic;
                 memWrite = false;
                 aluSrc = false;
                 regWrite = true;
@@ -33,7 +33,7 @@ namespace ControlUnit
                 aluSrc = true;
                 memRead = false;
                 memToReg = false;
-                aluOp = ALU::ALUOpCodes::And;
+                aluOp = ALU::ALUOpType::LoadStore;
                 memWrite = false;
                 aluSrc = false;
                 regWrite = true;
@@ -45,7 +45,7 @@ namespace ControlUnit
                 branch = false;
                 memRead = false;
                 memToReg = false;
-                aluOp = ALU::ALUOpCodes::Add;
+                aluOp = ALU::ALUOpType::LoadStore;
                 memWrite = false;
                 aluSrc = false;
                 regWrite = true;
@@ -90,7 +90,7 @@ namespace ControlUnit
             case OpCodes::J:
                 // Jump
                 regDest = false;
-                branch = false; // TODO should this be true ??
+                branch = true; // TODO should this be true ??
                 memRead = false;
                 memToReg = false;
                 aluOp = ALU::ALUOpCodes::Add; // This operation needs to result in 0
@@ -102,7 +102,7 @@ namespace ControlUnit
             case OpCodes::JAL:
                 // Jump and Link 
                 regDest = false;
-                branch = false; // TODO should this be true ??
+                branch = true; // TODO should this be true ??
                 memRead = false;
                 memToReg = false;
                 aluOp = ALU::ALUOpCodes::Add; // Same comment as Jump instruction
@@ -259,6 +259,56 @@ namespace ControlUnit
             default:
                 throw std::logic_error("Invalid opcode 0x" + std::to_string(opCode));
                 break;
+        }
+    }
+
+    
+    void aluControlUnit(const uint8_t funct, const uint8_t aluOpType, uint8_t &aluControl)
+    {
+        if ((aluOpType & 0x3) == ALU::ALUOpType::LoadStore)
+        {
+            aluControl = ALU::ALUOpCodes::Add;
+        }
+        else if ((aluOpType & 0x1) == ALU::ALUOpType::Branch)
+        {
+            aluControl = ALU::ALUOpCodes::Sub;
+        }
+        else if (aluOpType == ALU::ALUOpType::AddI)
+        {
+            aluControl = ALU::ALUOpCodes::Add;
+        }
+        else if (aluOpType == ALU::ALUOpType::AndI)
+        {
+            aluControl = ALU::ALUOpCodes::And;
+        }
+        else
+        {
+            switch (funct & RTypeInstruction::FunctMask)
+            {
+                case 0x0:
+                    aluControl = ALU::ALUOpCodes::Add;
+                    break;
+                
+                case 0x2:
+                    aluControl = ALU::ALUOpCodes::Sub;
+                    break;
+                
+                case 0x4:
+                    aluControl = ALU::ALUOpCodes::And;
+                    break;
+                
+                case 0x5:
+                    aluControl = ALU::ALUOpCodes::Or;
+                    break;
+                
+                case 0xA:
+                    aluControl = ALU::ALUOpCodes::Slt;
+                    break;
+                
+                default:
+                    throw std::logic_error("Could not calculate ALU opcode from funct");
+                    break;
+            }
         }
     }
 }
