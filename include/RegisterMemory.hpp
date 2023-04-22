@@ -3,11 +3,8 @@
 
 #include "Memory.hpp"
 
-class RegisterMemory : private virtual Memory<uint32_t>
+class RegisterMemory : public Memory<uint32_t>
 {
-private:
-    const uint16_t m_MemorySize;
-
 public:
     RegisterMemory();
 
@@ -35,6 +32,11 @@ public:
     \return True if idx is valid, false if idx is invalid
     */
     bool setRegister(const bool regWrite, const uint16_t idx, const uint32_t data);
+
+
+    void clearRegisters();
+
+    uint16_t getMemSize() const;
 
 };
 

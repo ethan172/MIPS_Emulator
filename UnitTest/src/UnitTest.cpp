@@ -14,12 +14,15 @@ https://learn.microsoft.com/en-us/cpp/build/reference/output-file-f-options?view
 #define CATCH_CONFIG_MAIN
 #define CATCH_CONFIG_NO_POSIX_SIGNALS
 #include <vector>
+#include <string>
 
 #include "catch.hpp"
 #include "MipsUtils.hpp"
 #include "InstructionMemory.hpp"
 #include "ALU.hpp"
 #include "InstructionTypes.hpp"
+#include "RegisterMemory.hpp"
+#include "DataMemory.hpp"
 
 
 TEST_CASE("Utils")
@@ -321,6 +324,147 @@ TEST_CASE("InstructionMemory")
         CHECK((data & RTypeInstruction::ShamtMask) == shamt);
         CHECK((data & RTypeInstruction::FunctMask) == funct);
 
+    }
+
+    SECTION("Default Constructor")
+    {
+        InstructionMemory i;
+
+        CHECK(i.getMemorySize() == 512); // Instruction memory by default initializes to length of 512
+        CHECK(i.getMemorySizeBytes() == (512 * sizeof(uint32_t)));
+    }
+}
+
+TEST_CASE("Register Memory")
+{
+    SECTION("Basic Test")
+    {
+        std::vector<uint32_t> v;
+        RegisterMemory r(1000);
+
+        for (int i = 0; i < 1000; i++)
+        {
+            v.push_back(i);
+            r.setRegister(true, i, i);
+        }
+
+        uint32_t data;
+        for (int i=0; i < 1000; i++)
+        {
+            r.getRegister(i, data);
+            CHECK(v[i] == data);
+        }
+
+        CHECK(r.setRegister(false, 0, 0xBAD) == false);
+        CHECK(r.setRegister(false, 1, 0xBADF00D) == false);
+    }
+
+    SECTION("Clear Memory")
+    {
+        std::vector<uint32_t> v;
+        uint16_t memSize = 4096;
+        RegisterMemory r(memSize);
+
+        uint32_t data;
+        for (int i = 0; i<memSize; i++)
+        {
+            v.push_back(i);
+            r.setRegister(true, i, i);
+
+            r.getRegister(i, data);
+            CHECK(v[i] == data);
+        }
+
+        r.clearRegisters();
+
+        // Can't guarantee memory is reallocated in the same space so can only really check the size
+        CHECK(r.getMemorySize() == memSize);
+    }
+
+    SECTION("Memory Dump")
+    {
+        std::vector<uint32_t> v;
+        uint32_t memSize = 4096;
+        RegisterMemory r(memSize);
+        RegisterMemory r2(memSize);
+        std::string memoryFile = "RegisterMemoryDump.csv";
+        std::string line;
+
+        for (uint32_t i = 0; i<memSize; i++)
+        {
+            v.push_back(i);
+            r.setRegister(true, i, i);
+        }
+
+        r.dumpMemory(memoryFile);
+
+        std::ifstream in(memoryFile);
+        REQUIRE(in.is_open());
+
+        uint32_t inData, count;
+
+        count = 0;
+        std::getline(in, line); // throw out the header line
+        std::getline(in, line);
+        while (!in.fail())
+        {
+            std::istringstream(line.substr(line.find(',')+1, std::string::npos)) >> std::hex >> inData;
+            CHECK(r2.setRegister(true, count, inData));
+            std::getline(in, line);
+            count++;
+        }
+
+        // Check the memory values read in are the same as what was printed out
+        REQUIRE(r2.getMemorySize() == memSize);
+        for (uint32_t i = 0; i<memSize; i++)
+        {
+            r2.getRegister(i, inData);
+            CHECK(inData == v[i]);
+        }
+    }
+
+    SECTION("Default Constructor")
+    {
+        RegisterMemory r;
+        
+        CHECK(r.getMemorySize() == 64);
+        CHECK(r.getMemorySizeBytes() == (64 * sizeof(uint32_t)));
+    }
+}
+
+TEST_CASE("Data Memory")
+{
+    SECTION("Basic Test")
+    {
+        uint16_t memSize = 4096;
+        std::vector<uint32_t> v;
+        DataMemory d(memSize);
+        uint32_t data;
+
+        for (unsigned int i = 0; i<memSize; i++)
+        {
+            d.setRegister(true, i, i*2);
+
+            d.getRegister(true, i, data);
+            CHECK(data == (i*2));
+        }
+
+        // Check memory write flag
+        CHECK(d.setRegister(false, 0, 0xBADF00D) == false);
+        d.getRegister(true, 0, data);
+        CHECK(data != 0xBADF00D);
+        
+        // Check memory read flag
+        data = 0;
+        d.setRegister(true, 0, 0xA55);
+        CHECK(d.getRegister(false, 0, data) == false);
+        CHECK(data == 0);
+
+        // Check bounds
+        CHECK(d.setRegister(true, memSize + 1, 0xBAD) == false);
+        CHECK(d.setRegister(true, -1, 0xBAD) == false);
+        CHECK((d.getRegister(true, memSize + 1, data) == false && data == 0));
+        CHECK((d.getRegister(true, -1, data) == false && data == 0));
     }
 }
 

@@ -1,15 +1,13 @@
 #include "InstructionMemory.hpp"
 
 InstructionMemory::InstructionMemory() :
-    Memory(512),
-    m_MemorySize(getMemorySize())
+    Memory(512)
 {
     m_InstructionCount = 0;
 }
 
 InstructionMemory::InstructionMemory(const uint16_t memSize) :
-    Memory(memSize),
-    m_MemorySize(memSize)
+    Memory(memSize)
 {
     m_InstructionCount = 0;
 }
@@ -26,12 +24,9 @@ bool InstructionMemory::addInstruction(const uint32_t instr)
     if (retVal)
     {
         m_InstructionCount++;
-        return true;
     }
-    else
-    {
-        return false;
-    }
+
+    return retVal;
 }
 
 bool InstructionMemory::fetchInstruction(const uint16_t idx, uint32_t& entry) const

@@ -22,22 +22,26 @@ https://learn.microsoft.com/en-us/cpp/build/reference/output-file-f-options?view
 
 /*
 General TODOs
-- Implement logic to read in file
+
+- Complete unit testing all components
+- Implement reserved memory spaces for register memory
 
 */
 
 
 int main(int argc, char *argv[])
 {
-    std::cout << "Starting MIPS Emulator" << std::endl;
-
     if (argc != 2)
     {
         std::cout << "Usage is MIPSEmulator <instruction file>" << std::endl;
         return EXIT_FAILURE;
     }
+    else
+    {
+        std::cout << "Reading instructions from " << argv[1] << std::endl;
+    }
 
-    std::ifstream inFile(argv[1]);
+    std::ifstream inFile(argv[1], std::fstream::in);
     uint32_t lineNumber = 1;
     uint32_t instructionWord;
     uint16_t programCounter = 0;
@@ -48,18 +52,17 @@ int main(int argc, char *argv[])
     uint16_t rs, rt, rd, immediate, funct;
     uint32_t signExtendImm;
 
-    inFile >> instructionWord;
-    while (!inFile.fail())
+    inFile >> std::hex >> instructionWord; // prime
+    while (!inFile.fail()) // test
     {
-        success &= instructionMem.addInstruction(instructionWord);
-
+        success = instructionMem.addInstruction(instructionWord);
         if (!success)
         {
             std::cout << "Could not add instruction " << lineNumber << std::endl;
         }
         
         lineNumber++;
-        inFile >> instructionWord;
+        inFile >> std::hex >> instructionWord; // reprime
     }    
 
 
@@ -154,7 +157,6 @@ int main(int argc, char *argv[])
             break;
         }
     }
-
     
-    return 0;
+    return EXIT_SUCCESS;
 }

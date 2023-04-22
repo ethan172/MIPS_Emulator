@@ -2,15 +2,13 @@
 
 
 DataMemory::DataMemory() :
-    Memory(4096),
-    m_MemorySize(getMemorySize())
+    Memory(4096)
 {
 
 }
 
 DataMemory::DataMemory(const uint16_t memSize) :
-    Memory(memSize),
-    m_MemorySize(memSize)
+    Memory(memSize)
 {
 
 }
@@ -22,7 +20,7 @@ DataMemory::~DataMemory()
 
 bool DataMemory::getRegister(const bool memRead, const uint16_t idx, uint32_t &data)
 {
-    if (memRead && idx < m_MemorySize)
+    if (memRead)
     {
         return readRegister(idx, data);
     }
@@ -32,7 +30,7 @@ bool DataMemory::getRegister(const bool memRead, const uint16_t idx, uint32_t &d
 
 bool DataMemory::setRegister(const bool memWrite, const uint16_t idx, const uint32_t data)
 {
-    if (memWrite && idx < m_MemorySize)
+    if (memWrite)
     {
         return writeRegister(idx, data);
     }

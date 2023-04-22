@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <iostream>
 #include <exception>
+#include <fstream>
 
 /*
 Base class for a X-bit memory buffer
@@ -72,7 +73,7 @@ protected:
     {
         if (m_MemoryBuffer != nullptr)
         {
-            std::cout<<"mem buffer is not null!"<<std::endl;
+            std::cout<<"Memory buffer is not null!"<<std::endl;
             delete[] m_MemoryBuffer;
         }
 
@@ -117,7 +118,7 @@ protected:
     bool writeRegister(const uint16_t addr, const T val)
     {
         // Check valid address
-        if (addr < MEM_SIZE)
+        if (addr < MEM_SIZE && addr >= 0)
         {
             m_MemoryBuffer[addr] = val;
             return true;
@@ -144,6 +145,11 @@ protected:
             // Not enough space in buffer for all entries
             return false;
         }
+        else if (startAddr < 0)
+        {
+            // invalid start address
+            return false;
+        }
         else if (entries == nullptr)
         {
             // No entries to add
@@ -158,18 +164,64 @@ protected:
         return true;
     }
 
+    /*
+    \brief Clears/wipes the memory buffer then reinitializes the space
+
+    \return None
+    */
     void clearMemory()
     {
         // delete then reinitialize so m_MemoryBuffer isn't null
         delete[] m_MemoryBuffer;
+        m_MemoryBuffer = nullptr;
         initializeMemory();
     }
 
+
+
+public:
+
+    /*
+    \brief Returns the length of the buffer; number of possible entries
+    */
     uint16_t getMemorySize() const
     {
         return MEM_SIZE;
     }
 
+
+    /*
+    \brief Returns the size of the buffer in bytes
+    */
+    uint32_t getMemorySizeBytes() const
+    {
+        return (MEM_SIZE * sizeof(T));
+    }
+
+
+    /*
+    \brief Will write the contents of each register to outputFile
+
+    @param [in] outputFile File to write the memory data to
+
+    \return None
+    */
+    void dumpMemory(const std::string& outputFile) const
+    {
+        std::ofstream out(outputFile);
+
+        if (!out.is_open())
+        {
+            std::cout << "Could not open memory dump file " << outputFile << std::endl;
+            return;
+        }
+        
+        out << "Address, Value" << std::endl;
+        for (unsigned int i = 0; i < MEM_SIZE; i++)
+        {
+            out << std::uppercase << std::hex << "0x" << i << ",0x" << m_MemoryBuffer[i] << std::endl;
+        }
+    }
 };
 
 #endif // MEMORY_HPP

@@ -3,11 +3,8 @@
 
 #include "Memory.hpp"
 
-class DataMemory : private virtual Memory<uint32_t>
+class DataMemory : public Memory<uint32_t>
 {
-private:
-    const uint16_t m_MemorySize;
-
 public:
     DataMemory();
 
