@@ -1,0 +1,69 @@
+{
+    "Instructions":
+    [
+        {
+            "type": "I",
+            "opcode": "0x8",
+            "rs": "0x0",
+            "rt": "0x1",
+            "immediate": "0xF00D"
+        },
+        {
+            "type": "R",
+            "opcode": "0x0",
+            "rs": "0x0",
+            "rt": "0x1",
+            "rd": "0x2",
+            "shamt": "0x0",
+            "funct": "0x25"
+        },
+        {
+            "type": "I",
+            "opcode": "0xD",
+            "rs": "0x2",
+            "rt": "0x3",
+            "immediate": "0xAA0"
+        },
+        {
+            "type": "R",
+            "opcode": "0x0",
+            "rs": "0x0",
+            "rt": "0x1",
+            "rd": "0x4",
+            "shamt": "0x0",
+            "funct": "0x20"
+        },
+        {
+            "type": "I",
+            "opcode": "0x9",
+            "rs": "0x0",
+            "rt": "0x5",
+            "immediate": "0x1234"
+        },
+        {
+            "type": "R",
+            "opcode": "0x0",
+            "rs": "0x5",
+            "rt": "0x0",
+            "rd": "0x6",
+            "shamt": "0x0",
+            "funct": "0x21"
+        },
+        {
+            "type": "R",
+            "opcode": "0x0",
+            "rs": "0x0",
+            "rt": "0x6",
+            "rd": "0x7",
+            "shamt": "0x0",
+            "funct": "0x24"
+        },
+        {
+            "type": "I",
+            "opcode": "0xC",
+            "rs": "0x5",
+            "rt": "0x8",
+            "immediate": "0xFFFF"
+        }
+    ]
+}
