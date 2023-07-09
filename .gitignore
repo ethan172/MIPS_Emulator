@@ -1,3 +1,5 @@
 *.o
 *.vscode
+*.csv
+*.txt
 MIPSEmulator*
