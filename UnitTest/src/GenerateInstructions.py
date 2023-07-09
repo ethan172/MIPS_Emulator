@@ -97,8 +97,14 @@ if __name__ == "__main__":
 
     for inst in builder_data["Instructions"]:
         instruction = 0x0
+        
         try:
             print("Processing instruction ", inst["opcode"])
+
+            if inst["skip"] == True:
+                continue
+
+
             if inst["type"] == "R":
                 instruction = gen_RType_Instruction(int(inst["opcode"], base),
                                                     int(inst["rs"], base),

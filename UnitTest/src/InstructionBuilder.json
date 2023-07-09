@@ -6,7 +6,8 @@
             "opcode": "0x8",
             "rs": "0x0",
             "rt": "0x1",
-            "immediate": "0xF00D"
+            "immediate": "0xF00D",
+            "skip": false
         },
         {
             "type": "R",
@@ -15,14 +16,16 @@
             "rt": "0x1",
             "rd": "0x2",
             "shamt": "0x0",
-            "funct": "0x25"
+            "funct": "0x25",
+            "skip": false
         },
         {
             "type": "I",
             "opcode": "0xD",
             "rs": "0x2",
             "rt": "0x3",
-            "immediate": "0xAA0"
+            "immediate": "0xAA0",
+            "skip": false
         },
         {
             "type": "R",
@@ -31,14 +34,16 @@
             "rt": "0x1",
             "rd": "0x4",
             "shamt": "0x0",
-            "funct": "0x20"
+            "funct": "0x20",
+            "skip": false
         },
         {
             "type": "I",
             "opcode": "0x9",
             "rs": "0x0",
             "rt": "0x5",
-            "immediate": "0x1234"
+            "immediate": "0x1234",
+            "skip": false
         },
         {
             "type": "R",
@@ -47,7 +52,8 @@
             "rt": "0x0",
             "rd": "0x6",
             "shamt": "0x0",
-            "funct": "0x21"
+            "funct": "0x21",
+            "skip": false
         },
         {
             "type": "R",
@@ -56,14 +62,121 @@
             "rt": "0x6",
             "rd": "0x7",
             "shamt": "0x0",
-            "funct": "0x24"
+            "funct": "0x24",
+            "skip": false
         },
         {
             "type": "I",
             "opcode": "0xC",
             "rs": "0x5",
             "rt": "0x8",
-            "immediate": "0xFFFF"
+            "immediate": "0xFFFF",
+            "skip": false
+        },
+        {
+            "type": "I",
+            "opcode": "0x4",
+            "rs": "0x0",
+            "rt": "0x0",
+            "immediate": "0x2",
+            "skip": false
+        },
+        {
+            "type": "I",
+            "opcode": "0x0",
+            "rs": "0x0",
+            "rt": "0x0",
+            "immediate": "0x0",
+            "comment": "should be skipped from above branch",
+            "skip": false
+        },
+        {
+            "type": "I",
+            "opcode": "0x0",
+            "rs": "0x0",
+            "rt": "0x0",
+            "immediate": "0x0",
+            "comment": "should be skipped from above branch",
+            "skip": false
+        },
+        {
+            "type": "I",
+            "opcode": "0x8",
+            "rs": "0x0",
+            "rt": "0x9",
+            "immediate": "0x6969",
+            "skip": false
+        },
+        {
+            "type": "R",
+            "opcode": "0x0",
+            "rs": "0x0",
+            "rt": "0x1",
+            "rd": "0xA",
+            "shamt": "0x0",
+            "funct": "0x27",
+            "comment": "NOR 0x0 and 0xF00D",
+            "skip": false
+        },
+        {
+            "type": "R",
+            "opcode": "0x0",
+            "rs": "0x0",
+            "rt": "0x1",
+            "rd": "0xB",
+            "shamt": "0x0",
+            "funct": "0x2A",
+            "comment": "rd = (rs < rt) should evaluate to 1",
+            "skip": false
+        },
+        {
+            "type": "R",
+            "opcode": "0x0",
+            "rs": "0x1",
+            "rt": "0x0",
+            "rd": "0xC",
+            "shamt": "0x0",
+            "funct": "0x2A",
+            "comment": "rd = (rs < rt) should evaluate to 0",
+            "skip": false
+        },
+        {
+            "type": "R",
+            "opcode": "0x0",
+            "rs": "0x0",
+            "rt": "0x1",
+            "rd": "0xD",
+            "shamt": "0x0",
+            "funct": "0x2A",
+            "comment": "rd = (rs < rt) should evaluate to 1",
+            "skip": false
+        },
+        {
+            "type": "I",
+            "opcode": "0x8",
+            "rs": "0x0",
+            "rt": "0xE",
+            "immediate": "0x13",
+            "comment": "Load 0x13 into register 0xE",
+            "skip": false
+        },
+        {
+            "type": "R",
+            "opcode": "0x0",
+            "rs": "0xE",
+            "rt": "0x0",
+            "rd": "0x0",
+            "shamt": "0x0",
+            "funct": "0x8",
+            "comment": "JR; PC = R[rs]",
+            "skip": false
+        },
+        {
+            "type": "J",
+            "opcode": "0x2",
+            "address": "0x0",
+            "comment": "Will create an infinite loop if not skipped by previous branch/jump",
+            "skip": false
         }
     ]
 }

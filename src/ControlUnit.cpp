@@ -3,312 +3,244 @@
 #include "ALU.hpp"
 
 #include <stdexcept>
+#include <iostream>
 
 namespace ControlUnit
 {
-    void evaluate(const uint32_t instructionWord, bool &regDest, bool &branch,
-                                bool &memRead, bool &memToReg, uint8_t &aluOp, bool &memWrite, 
-                                bool &aluSrc, bool &regWrite)
+    uint16_t evaluate(const uint32_t instructionWord)
     {
         uint8_t opCode = (instructionWord & RTypeInstruction::OpCodeMask) >> 26;
+
+        uint16_t controlSignals = 0x0;
+        uint16_t aluOp;
 
         switch (opCode)
         {
             case OpCodes::ZERO:
                 // R Type Instruction
-                regDest = true;
-                branch = false;
-                memRead = false;
-                memToReg = false;
-                aluOp = ALU::ALUOpType::Arithmetic;
-                memWrite = false;
-                aluSrc = false;
-                regWrite = true;
+                controlSignals |= ControlSignals::REG_DST_MASK;
+                aluOp = ALUOpFromFunct((instructionWord & RTypeInstruction::FunctMask));
+                controlSignals |= ControlSignals::REG_WRITE_MASK;
                 break;
             
             case OpCodes::ADDI:
                 // Add Immediate
-                regDest = false;
-                branch = false;
-                aluSrc = true;
-                memRead = false;
-                memToReg = false;
-                aluOp = ALU::ALUOpType::LoadStore;
-                memWrite = false;
-                aluSrc = false;
-                regWrite = true;
+                controlSignals |= ControlSignals::ALU_SRC_MASK;
+                
+                aluOp = ALU::ALUOpCodes::Add;
+                
+                controlSignals |= ControlSignals::REG_WRITE_MASK;
                 break;
             
             case OpCodes::ADDIU:
                 // Add Immediate Unsigned
-                regDest = false;
-                branch = false;
-                memRead = false;
-                memToReg = false;
-                aluOp = ALU::ALUOpType::LoadStore;
-                memWrite = false;
-                aluSrc = false;
-                regWrite = true;
+                aluOp = ALU::ALUOpCodes::Add;
+                controlSignals |= ControlSignals::ALU_SRC_MASK;
+                controlSignals |= ControlSignals::REG_WRITE_MASK;
                 break;
             
             case OpCodes::ANDI:
                 // And Immediate
-                regDest = false;
-                branch = false;
-                memRead = false;
-                memToReg = false;
                 aluOp = ALU::ALUOpCodes::And;
-                memWrite = false;
-                aluSrc = false;
-                regWrite = true;
+                controlSignals |= ControlSignals::ALU_SRC_MASK;
+                controlSignals |= ControlSignals::REG_WRITE_MASK;
                 break;
             
             case OpCodes::BEQ:
                 // Branch on equal
-                regDest = false;
-                branch = true;
-                memRead = false;
-                memToReg = false;
+                controlSignals |= ControlSignals::BRANCH_MASK;
                 aluOp = ALU::ALUOpCodes::Sub;
-                memWrite = false;
-                aluSrc = false;
-                regWrite = false;
                 break;
             
             case OpCodes::BNE:
                 // Branch on not equal
-                regDest = false;
-                branch = true;
-                memRead = false;
-                memToReg = false;
+                controlSignals |= ControlSignals::BRANCH_MASK;
                 aluOp = ALU::ALUOpCodes::Sub;
-                memWrite = false;
-                aluSrc = false;
-                regWrite = false;
                 break;
             
             case OpCodes::J:
                 // Jump
-                regDest = false;
-                branch = true; // TODO should this be true ??
-                memRead = false;
-                memToReg = false;
-                aluOp = ALU::ALUOpCodes::Add; // This operation needs to result in 0
-                memWrite = false;
-                aluSrc = false;
-                regWrite = false;
+                controlSignals |= ControlSignals::JUMP_MASK;
+                aluOp = ALU::ALUOpCodes::Sub; // Pretty sure this is a don't care
                 break;
             
             case OpCodes::JAL:
                 // Jump and Link 
-                regDest = false;
-                branch = true; // TODO should this be true ??
-                memRead = false;
-                memToReg = false;
-                aluOp = ALU::ALUOpCodes::Add; // Same comment as Jump instruction
-                memWrite = false;
-                aluSrc = false;
-                regWrite = true;
+                controlSignals |= ControlSignals::JUMP_MASK;
+                aluOp = ALU::ALUOpCodes::Sub; // Same comment as Jump instruction
+                controlSignals |= ControlSignals::REG_WRITE_MASK;
                 break;
             
             case OpCodes::LBU:
                 // Load byte unsigned
-                regDest = false;
-                branch = false;
-                memRead = true;
-                memToReg = true;
+                controlSignals |= ControlSignals::MEM_READ_MASK;
+                controlSignals |= ControlSignals::MEM_TO_REG_MASK;
+
                 aluOp = ALU::ALUOpCodes::Add;
-                memWrite = false;
-                aluSrc = false;
-                regWrite = true;
+                controlSignals |= ControlSignals::REG_WRITE_MASK;
                 break;
             
             case OpCodes::LHU:
                 // Load halfword unsigned
-                regDest = false;
-                branch = false;
-                memRead = true;
-                memToReg = true;
+                controlSignals |= ControlSignals::MEM_READ_MASK;
+                controlSignals |= ControlSignals::MEM_TO_REG_MASK;
                 aluOp = ALU::ALUOpCodes::Add;
-                memWrite = false;
-                aluSrc = false;
-                regWrite = true;
+                controlSignals |= ControlSignals::REG_WRITE_MASK;
                 break;
             
             case OpCodes::LL:
                 // Load linked
-                regDest = false;
-                branch = false;
-                memRead = true;
-                memToReg = true;
+                controlSignals |= ControlSignals::MEM_READ_MASK;
+                controlSignals |= ControlSignals::MEM_TO_REG_MASK;
                 aluOp = ALU::ALUOpCodes::Add;
-                memWrite = false;
-                aluSrc = false;
-                regWrite = true;
+                controlSignals |= ControlSignals::REG_WRITE_MASK;
                 break;
             
             case OpCodes::LUI:
                 // Load upper immediate
-                regDest = false;
-                branch = false;
-                memRead = false;
-                memToReg = true;
+                controlSignals |= ControlSignals::MEM_TO_REG_MASK;
                 aluOp = ALU::ALUOpCodes::Add;
-                memWrite = false;
-                aluSrc = false;
-                regWrite = true;
+                controlSignals |= ControlSignals::ALU_SRC_MASK;
+                controlSignals |= ControlSignals::REG_WRITE_MASK;
                 break;
             
             case OpCodes::LW:
                 // Load Word
-                regDest = false;
-                branch = false;
-                memRead = true;
-                memToReg = true;
+                controlSignals |= ControlSignals::MEM_READ_MASK;
+                controlSignals |= ControlSignals::MEM_TO_REG_MASK;
                 aluOp = ALU::ALUOpCodes::Add;
-                memWrite = false;
-                aluSrc = false;
-                regWrite = true;
+                controlSignals |= ControlSignals::REG_WRITE_MASK;
                 break;
             
             case OpCodes::ORI:
                 // Or Immediate
-                regDest = false;
-                branch = false;
-                memRead = false;
-                memToReg = false;
                 aluOp = ALU::ALUOpCodes::Or;
-                memWrite = false;
-                aluSrc = false;
-                regWrite = true;
+                controlSignals |= ControlSignals::ALU_SRC_MASK;
+                controlSignals |= ControlSignals::REG_WRITE_MASK;
                 break;
             
             case OpCodes::SLTI:
                 // Set less than immediate
-                regDest = false;
-                branch = false;
-                memRead = false;
-                memToReg = false;
                 aluOp = ALU::ALUOpCodes::Slt;
-                memWrite = false;
-                aluSrc = false;
-                regWrite = true;
+                controlSignals |= ControlSignals::ALU_SRC_MASK;
+                controlSignals |= ControlSignals::REG_WRITE_MASK;
                 break;
             
             case OpCodes::SLTIU:
                 // Set less than immediate unsigned
-                regDest = false;
-                branch = false;
-                memRead = false;
-                memToReg = false;
-                memWrite = false;
                 aluOp = ALU::ALUOpCodes::Slt;
-                memWrite = false;
-                aluSrc = false;
-                regWrite = true;
+                controlSignals |= ControlSignals::ALU_SRC_MASK;
+                controlSignals |= ControlSignals::REG_WRITE_MASK;
                 break;
             
             case OpCodes::SB:
                 // Store byte
-                regDest = false;
-                branch = false;
-                memRead = false;
-                memToReg = false;
                 aluOp = ALU::ALUOpCodes::Add;
-                memWrite = true;
-                aluSrc = false;
-                regWrite = false;
+                controlSignals |= ControlSignals::MEM_WRITE_MASK;
                 break;
             
             case OpCodes::SC:
                 // Store conditional
-                regDest = false;
-                branch = false;
-                memRead = false;
-                memToReg = false;
                 aluOp = ALU::ALUOpCodes::Add;
-                memWrite = true;
-                aluSrc = false;
-                regWrite = false;
+                controlSignals |= ControlSignals::MEM_WRITE_MASK;
                 break;
             
             case OpCodes::SH:
                 // Store halfword
-                regDest = false;
-                branch = false;
-                memRead = false;
-                memToReg = false;
                 aluOp = ALU::ALUOpCodes::Add;
-                memWrite = true;
-                aluSrc = false;
-                regWrite = false;
+                controlSignals |= ControlSignals::MEM_WRITE_MASK;
                 break;
             
             case OpCodes::SW:
                 // Store word
-                regDest = false;
-                branch = false;
-                memRead = false;
-                memToReg = true;
+                controlSignals |= ControlSignals::MEM_TO_REG_MASK;
                 aluOp = ALU::ALUOpCodes::Add;
-                memWrite = true;
-                aluSrc = false;
-                regWrite = false;
+                controlSignals |= ControlSignals::MEM_WRITE_MASK;
                 break;
             
             default:
-                throw std::logic_error("Invalid opcode 0x" + std::to_string(opCode));
+                std::cout << "Invalid opcode: " << std::uppercase << std::hex << opCode << std::endl;
                 break;
+            
         }
+
+        controlSignals |= (aluOp << ControlSignals::AluOpLSB);
+        return controlSignals;
     }
 
     
-    void aluControlUnit(const uint8_t funct, const uint8_t aluOpType, uint8_t &aluControl)
+    uint16_t ALUOpFromFunct(const uint8_t funct)
     {
-        if ((aluOpType & 0x3) == ALU::ALUOpType::LoadStore)
+        uint16_t aluControl = 0;
+
+        switch (funct)
         {
-            aluControl = ALU::ALUOpCodes::Add;
+            case FunctCodes::SLL:
+                // Shift left logical
+                aluControl = ALU::ALUOpCodes::Sll;
+                break;
+            
+            case FunctCodes::SRL:
+                // Shift right logical
+                aluControl = ALU::ALUOpCodes::Srl;
+                break;
+
+            case FunctCodes::JR:
+                // Jump register
+                aluControl = ALU::ALUOpCodes::Sub; // pretty sure this is a don't care
+                break;
+            
+            case FunctCodes::ADD:
+                // Add
+                aluControl = ALU::ALUOpCodes::Add;
+                break;
+            
+            case FunctCodes::ADDU:
+                // Add unsigned
+                aluControl = ALU::ALUOpCodes::Add; // TODO does this need to be different for unsigned?
+                break;
+
+            case FunctCodes::SUB:
+                // Subtraction
+                aluControl = ALU::ALUOpCodes::Sub;
+                break;
+            
+            case FunctCodes::SUBU:
+                // Sub unsigned
+                aluControl = ALU::ALUOpCodes::Sub; // TODO does this need to be different for unsigned?
+                break;
+            
+            case FunctCodes::AND:
+                // And
+                aluControl = ALU::ALUOpCodes::And;
+                break;
+            
+            case FunctCodes::OR:
+                // Or
+                aluControl = ALU::ALUOpCodes::Or;
+                break;
+            
+            case FunctCodes::NOR:
+                // Nor
+                aluControl = ALU::ALUOpCodes::Nor;
+                break;
+            
+            case FunctCodes::SLT:
+                // Set less than
+                aluControl = ALU::ALUOpCodes::Slt;
+                break;
+
+            case FunctCodes::SLTU:
+                // Set less than unsigned
+                aluControl = ALU::ALUOpCodes::Slt; // TODO does this need to be different for unsigned?
+                break;
+            
+            default:
+                std::cout << "Could not compute ALU opcode from funct ";
+                std::cout << std::uppercase << std::hex << funct << std::endl;
+                break;
         }
-        else if ((aluOpType & 0x1) == ALU::ALUOpType::Branch)
-        {
-            aluControl = ALU::ALUOpCodes::Sub;
-        }
-        else if (aluOpType == ALU::ALUOpType::AddI)
-        {
-            aluControl = ALU::ALUOpCodes::Add;
-        }
-        else if (aluOpType == ALU::ALUOpType::AndI)
-        {
-            aluControl = ALU::ALUOpCodes::And;
-        }
-        else
-        {
-            switch (funct & RTypeInstruction::FunctMask)
-            {
-                case 0x0:
-                    aluControl = ALU::ALUOpCodes::Add;
-                    break;
-                
-                case 0x2:
-                    aluControl = ALU::ALUOpCodes::Sub;
-                    break;
-                
-                case 0x4:
-                    aluControl = ALU::ALUOpCodes::And;
-                    break;
-                
-                case 0x5:
-                    aluControl = ALU::ALUOpCodes::Or;
-                    break;
-                
-                case 0xA:
-                    aluControl = ALU::ALUOpCodes::Slt;
-                    break;
-                
-                default:
-                    throw std::logic_error("Could not calculate ALU opcode from funct");
-                    break;
-            }
-        }
+
+        return aluControl;
     }
 }

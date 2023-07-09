@@ -5,6 +5,9 @@
 
 class DataMemory : public Memory<uint32_t>
 {
+private:
+    static const uint16_t m_DefaultMemSize = 4096;
+    
 public:
     DataMemory();
 

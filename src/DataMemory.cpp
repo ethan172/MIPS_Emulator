@@ -2,7 +2,7 @@
 
 
 DataMemory::DataMemory() :
-    Memory(4096)
+    Memory(m_DefaultMemSize)
 {
 
 }
@@ -25,7 +25,7 @@ bool DataMemory::getRegister(const bool memRead, const uint16_t idx, uint32_t &d
         return readRegister(idx, data);
     }
 
-    return false;
+    return true;
 }
 
 bool DataMemory::setRegister(const bool memWrite, const uint16_t idx, const uint32_t data)
@@ -35,5 +35,5 @@ bool DataMemory::setRegister(const bool memWrite, const uint16_t idx, const uint
         return writeRegister(idx, data);
     }
 
-    return false;
+    return true;
 }

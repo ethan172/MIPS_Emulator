@@ -1,8 +1,13 @@
 #include "RegisterMemory.hpp"
+#include <iostream>
 
+void RegisterMemory::initializeMemory()
+{
+    writeRegister(0, 0);
+}
 
 RegisterMemory::RegisterMemory() :
-    Memory(64)
+    Memory(m_DefaultMemSize)
 {
     
 }
@@ -28,10 +33,12 @@ bool RegisterMemory::setRegister(const bool regWrite, const uint16_t idx, const 
     // idx is within bounds and regWrite flag is true
     if (regWrite)
     {
+        // std::cout << "Writing register 0x" << std::uppercase << std::hex << idx;
+        // std::cout << " with 0x" << std::uppercase << std::hex << data << std::endl;
         return writeRegister(idx, data);
     }
 
-    return false;
+    return true;
 }
 
 void RegisterMemory::clearRegisters()

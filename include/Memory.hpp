@@ -84,6 +84,14 @@ protected:
         }
 
         m_MemoryBuffer = new T[MEM_SIZE];
+
+        /*
+        TODO may take this out but it helps for testing
+        */
+        for (unsigned int i = 0; i < MEM_SIZE; i++)
+        {
+            m_MemoryBuffer[i] = 0;
+        }
     }
 
     
@@ -178,7 +186,6 @@ protected:
     }
 
 
-
 public:
 
     /*
@@ -216,11 +223,19 @@ public:
             return;
         }
         
-        out << "Address, Value" << std::endl;
+        out << "Address,Value" << std::endl;
         for (unsigned int i = 0; i < MEM_SIZE; i++)
         {
             out << std::uppercase << std::hex << "0x" << i << ",0x" << m_MemoryBuffer[i] << std::endl;
         }
+    }
+
+    /*
+    \brief Returns memory buffer on heap
+    */
+    T* getMemoryBuffer() const
+    {
+        return m_MemoryBuffer;
     }
 };
 

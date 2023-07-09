@@ -25,19 +25,16 @@ namespace ControlUnit
 
     \return None
     */
-    void evaluate(const uint32_t instructionWord, bool& regDest, bool& branch, bool& memRead,
-                    bool& memToReg, uint8_t& aluOp, bool& memWrite, bool& aluSrc, bool& regWrite);
+    uint16_t evaluate(const uint32_t instructionWord);
     
     /*
     \brief Generates appropriate ALU control signals
 
     @param [in] funct Five bit funct code from the instruction word
-    @param [in] aluOpType Two bit operation type; Load/Store, Branch, Arithmetic (R-Types)
-    @param [out] aluControl Three bit control signal going to the ALU
 
-    \return None
+    \return ALU control signal
     */
-    void aluControlUnit(const uint8_t funct, const uint8_t aluOpType, uint8_t& aluControl);
+    uint16_t ALUOpFromFunct(const uint8_t funct);
 
 
     /*
@@ -46,19 +43,20 @@ namespace ControlUnit
     namespace ControlSignals
     {
         // bitmasks for signals coming out of the Control Unit
-        const uint32_t REG_DST_MASK       = 0x001;
-        const uint32_t BRANCH_MASK        = 0x002;
-        const uint32_t MEM_READ_MASK      = 0x004;
-        const uint32_t MEM_TO_REG_MASK    = 0x008;
-        const uint32_t ALU_OP_MASK        = 0x070; // 3 bits
-        const uint32_t MEM_WRITE_MASK     = 0x080;
-        const uint32_t ALU_SRC_MASK       = 0x100;
-        const uint32_t REG_WRITE_MASK     = 0x200;
+        const uint32_t REG_DST_MASK       = 0x001; // bit 0
+        const uint32_t BRANCH_MASK        = 0x002; // bit 1
+        const uint32_t MEM_READ_MASK      = 0x004; // bit 2
+        const uint32_t MEM_TO_REG_MASK    = 0x008; // bit 3
+        const uint32_t ALU_OP_MASK        = 0x070; // bits 6:4
+        const uint32_t MEM_WRITE_MASK     = 0x080; // bit 7
+        const uint32_t ALU_SRC_MASK       = 0x100; // bit 8
+        const uint32_t REG_WRITE_MASK     = 0x200; // bit 9
+        const uint32_t JUMP_MASK          = 0x400; // bit 10
 
         // LSB of the ALU op code within the control unit
         // This value will be the number of times the 
         // alu opcode is shifted when crafting the control unit output signal
-        const uint16_t aluLSB = 4;
+        const uint16_t AluOpLSB = 4;
     }
 }
 

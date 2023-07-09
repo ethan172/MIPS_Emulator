@@ -1,6 +1,8 @@
 #include "ALU.hpp"
 #include "MipsUtils.hpp"
 
+#include <iostream>
+
 ALU::ALU()
 {
     m_OpCode = 0x0;
@@ -28,29 +30,42 @@ uint32_t ALU::evaluate(const uint32_t lhs, const uint32_t rhs, bool& zeroFlag, b
     // Perform opeartion based on alu opcode member
     switch (m_OpCode)
     {
-        case ALUOpCodes::Add:
-            result = add(lhs, rhs);
-            break;
-
-        case ALUOpCodes::Sub:
-            result = sub(lhs, rhs);
+        case ALUOpCodes::And:
+            result = logicalAnd(lhs, rhs);
             break;
         
         case ALUOpCodes::Or:
             result = logicalOr(lhs, rhs);
             break;
         
-        case ALUOpCodes::And:
-            result = logicalAnd(lhs, rhs);
+        case ALUOpCodes::Add:
+            result = add(lhs, rhs);
             break;
+        
+        case ALUOpCodes::Sll:
+            result = sll(lhs, rhs);
+            break;
+            
+        case ALUOpCodes::Srl:
+            result = srl(lhs, rhs);
+            break;
+        
+        case ALUOpCodes::Nor:
+            result = nor(lhs, rhs);
+            break;
+
+        case ALUOpCodes::Sub:
+            result = sub(lhs, rhs);
+            break;        
         
         case ALUOpCodes::Slt:
             result = slt(lhs, rhs);
             break;
         
         default:
-            // TODO throw an exception here?
+            std::cout << "Invalid ALU opcode 0x" << std::uppercase << std::hex << m_OpCode << std::endl;
             result = 0x0;
+            break;
     }
 
     zeroFlag = m_ZeroFlag;
@@ -140,6 +155,43 @@ uint32_t ALU::slt(const int32_t lhs, const int32_t rhs)
     uint32_t result = (lhs < rhs);
 
     m_ZeroFlag = (result == 0);
+    m_Overflow = false;
+    m_CarryOut = false;
+
+    return result;
+}
+
+uint32_t ALU::nor(const uint32_t lhs, const uint32_t rhs)
+{
+    uint32_t result = ~(lhs | rhs);
+
+    m_ZeroFlag = (result == 0);
+    m_Overflow = false;
+    m_CarryOut = false;
+
+    return result;
+}
+
+int32_t ALU::sll(const int32_t lhs, const int32_t rhs)
+{
+    int32_t result = (lhs << rhs);
+
+    m_ZeroFlag = (result == 0);
+
+    //shifting by rhs is the same as lhs * rhs
+    m_Overflow = (result < rhs);
+    m_CarryOut = false;
+
+    return result;
+}
+
+int32_t ALU::srl(const int32_t lhs, const int32_t rhs)
+{
+    int32_t result = (lhs >> rhs);
+
+    m_ZeroFlag = (result == 0);
+
+    // Can't overflow on a right bit-shift
     m_Overflow = false;
     m_CarryOut = false;
 

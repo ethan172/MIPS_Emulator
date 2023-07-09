@@ -20,6 +20,9 @@ private:
     uint32_t logicalAnd(const uint32_t lhs, const uint32_t rhs);
     uint32_t logicalOr(const uint32_t lhs, const uint32_t rhs);
     uint32_t slt(const int32_t lhs, const int32_t rhs);
+    uint32_t nor(const uint32_t lhs, const uint32_t rhs);
+    int32_t sll(const int32_t lhs, const int32_t rhs);
+    int32_t srl(const int32_t lhs, const int32_t rhs);
 
 public:
 
@@ -43,22 +46,17 @@ public:
     */
     uint32_t evaluate(const uint32_t lhs, const uint32_t rhs, bool& zeroFlag, bool& overflow, bool& carryOut);
 
+    // Supposed to only have 3 bits for this - max value is 0x7
     enum ALUOpCodes
     {
-        Add = 0,
-        Sub,
-        Or,
-        And,
-        Slt
-    };
-
-    enum ALUOpType
-    {
-        Branch = 0x1,
-        Arithmetic = 0x2,
-        LoadStore = 0x3,
-        AddI = 0x4, // for I-Type add instruction
-        AndI = 0x5 // For I-Type and instruction
+        And     = 0x0,
+        Or      = 0x1,
+        Add     = 0x2,
+        Sll     = 0x3,
+        Srl     = 0x4,
+        Nor     = 0x5,
+        Sub     = 0x6,
+        Slt     = 0x7
     };
 };
 

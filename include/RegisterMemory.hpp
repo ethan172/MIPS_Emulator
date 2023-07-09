@@ -5,6 +5,11 @@
 
 class RegisterMemory : public Memory<uint32_t>
 {
+private:
+    static const uint16_t m_DefaultMemSize = 32;
+    
+    void initializeMemory();
+
 public:
     RegisterMemory();
 
